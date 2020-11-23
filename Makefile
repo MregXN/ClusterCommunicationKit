@@ -5,7 +5,7 @@ MUDUO_CODEC_PATH =  $(MUDUO_DIRECTORY)/codec
 MUDUO_PUBSUB_PATH =  $(MUDUO_DIRECTORY)/pubsub
 
 
-CXXFLAGS = -g -O0 -Wall -Wextra -Werror \
+CXXFLAGS = -g -O0 -Wall -Wextra \
 	   -Wconversion -Wno-unused-parameter \
 	   -Wold-style-cast -Woverloaded-virtual \
 	   -Wpointer-arith -Wshadow -Wwrite-strings \

@@ -5,6 +5,7 @@
 #include "muduo/base/Mutex.h"
 #include "muduo/net/EventLoopThread.h"
 #include "muduo/net/TcpClient.h"
+#include "muduo/net/EventLoop.h"
 
 #include <iostream>
 #include <stdio.h>
@@ -16,32 +17,41 @@ using namespace muduo::net;
 using namespace pubsub;
 
 EventLoop* g_loop = NULL;
-std::vector<string> g_topics;
-string g_content;
 
-// void subscription(const string& topic, const string& content, Timestamp)
-// {
-//   printf("%s: %s\n", topic.c_str(), content.c_str());
-// }
+void connection(PubSubClient* client)
+{
+  if (client->connected())
+  {
+    printf("... connected successfully!");
+  }
+  else
+  {
+    g_loop->quit();
+  }
+}
 
-// void connection(PubSubClient* client)
-// {
-//   if (client->connected())
-//   {
-//     for (std::vector<string>::iterator it = g_topics.begin();
-//         it != g_topics.end(); ++it)
-//     {
-//       client->subscribe(*it, subscription);
-//     }
-//   }
-//   else
-//   {
-//     g_loop->quit();
-//   }
-// }
+void subscription(const string topic, const string content, Timestamp)
+{
+  printf("%s: %s\n", topic.c_str(), content.c_str());
+}
 
-void message()
-{}
+
+void message (string name, string hostip,uint16_t port)
+{
+  
+  PubSubClient client(g_loop, InetAddress(hostip, port), name);
+  client.setConnectionCallback(connection);
+  client.subscribe(name, subscription);
+  client.start();
+  g_loop->loop();
+
+  string line;
+  while (getline(std::cin, line))
+  {
+    client.publish("slave02", line);
+  }
+
+}
 
 void fileTransfer()
 {}
@@ -54,6 +64,17 @@ int main(int argc, char* argv[])
     printf("Usage: ./client [server_ip]:[port] \n");
     return 0;
   }
+
+  string hostport = argv[1];
+  size_t colon = hostport.find(':');
+  if (colon == string::npos)
+  {
+    printf("Usage: ./client [server_ip]:[port] \n");
+    return 0;
+  }
+  string hostip = hostport.substr(0, colon);
+  uint16_t port = static_cast<uint16_t>(atoi(hostport.c_str()+colon+1));
+
 
   printf("please input your hostname:  \n");
   string name;
@@ -72,10 +93,13 @@ int main(int argc, char* argv[])
   string cmd;
   getline(std::cin,cmd);
 
+  EventLoop loop;
+  g_loop = &loop;
+
   switch(cmd[0])
   {
     case '1': 
-      message();
+      message(name,hostip,port);
     break;
 
     case '2': 
@@ -88,14 +112,6 @@ int main(int argc, char* argv[])
 
   }
 
-
-  // string hostport = argv[1];
-  // size_t colon = hostport.find(':');
-  // if (colon != string::npos)
-  // {
-  //   string hostip = hostport.substr(0, colon);
-  //   uint16_t port = static_cast<uint16_t>(atoi(hostport.c_str()+colon+1));
-  // }
 
 
 }
