@@ -1,5 +1,5 @@
 #include "pubsub.h"
-#include "codec.h"
+#include "../../muduo/codec/codec.h"
 
 using namespace muduo;
 using namespace muduo::net;
@@ -37,6 +37,13 @@ bool PubSubClient::subscribe(const string& topic, const SubscribeCallback& cb)
   string message = "sub " + topic + "\r\n";
   subscribeCallback_ = cb;
   return send(message);
+}
+
+
+void PubSubClient::getUser()
+{
+  string message = "get\r\n";
+  send(message);
 }
 
 void PubSubClient::unsubscribe(const string& topic)

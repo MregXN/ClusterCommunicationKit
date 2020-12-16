@@ -1,117 +1,119 @@
-#include "pubsub.h"
-#include "codec.h"
+#include "client.h"
+#include "../../muduo/codec/codec.h"
 
 #include "muduo/base/Logging.h"
-#include "muduo/base/Mutex.h"
-#include "muduo/net/EventLoopThread.h"
-#include "muduo/net/TcpClient.h"
-#include "muduo/net/EventLoop.h"
-
-#include <iostream>
-#include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
 
 using namespace muduo;
 using namespace muduo::net;
 using namespace pubsub;
 
-EventLoop* g_loop = NULL;
-
-void connection(PubSubClient* client)
+Client::Client(EventLoop* loop,
+                           const InetAddress& hubAddr,
+                           const string& name)
+  : client_(loop, hubAddr, name)
 {
-  if (client->connected())
+  // FIXME: dtor is not thread safe
+  client_.setConnectionCallback(
+      std::bind(&Client::onConnection, this, _1));
+  client_.setMessageCallback(
+      std::bind(&Client::onMessage, this, _1, _2, _3));
+}
+
+void Client::start()
+{
+  client_.connect();
+}
+
+void Client::stop()
+{
+  client_.disconnect();
+}
+
+bool Client::connected() const
+{
+  return conn_ && conn_->connected();
+}
+
+bool Client::subscribe(const string& topic, const SubscribeCallback& cb)
+{
+  string message = "sub " + topic + "\r\n";
+  subscribeCallback_ = cb;
+  return send(message);
+}
+
+
+void Client::getUser()
+{
+  string message = "get \r\n";
+  send(message);
+}
+
+void Client::unsubscribe(const string& topic)
+{
+  string message = "unsub " + topic + "\r\n";
+  send(message);
+}
+
+
+bool Client::publish(const string& topic, const string& content)
+{
+  string message = "pub " + topic + "\r\n" + content + "\r\n";
+  return send(message);
+}
+
+void Client::onConnection(const TcpConnectionPtr& conn)
+{
+  if (conn->connected())
   {
-    printf("... connected successfully!");
+    conn_ = conn;
+    // FIXME: re-sub
   }
   else
   {
-    g_loop->quit();
+    conn_.reset();
+  }
+  if (connectionCallback_)
+  {
+    connectionCallback_(this);
   }
 }
 
-void subscription(const string topic, const string content, Timestamp)
+void Client::onMessage(const TcpConnectionPtr& conn,
+                             Buffer* buf,
+                             Timestamp receiveTime)
 {
-  printf("%s: %s\n", topic.c_str(), content.c_str());
+  ParseResult result = kSuccess;
+  while (result == kSuccess)
+  {
+    string cmd;
+    string topic;
+    string content;
+    result = parseMessage(buf, &cmd, &topic, &content);
+    if (result == kSuccess)
+    {
+      if (cmd == "pub" && subscribeCallback_)
+      {
+        subscribeCallback_(topic, content, receiveTime);
+      }
+      else
+      {
+        LOG_INFO << " you have reveive something:   " << cmd << topic << content ;
+      }
+    }
+    else if (result == kError)
+    {
+      conn->shutdown();
+    }
+  }
 }
 
-
-void message (string name, string hostip,uint16_t port)
+bool Client::send(const string& message)
 {
-  
-  PubSubClient client(g_loop, InetAddress(hostip, port), name);
-  client.setConnectionCallback(connection);
-  client.subscribe(name, subscription);
-  client.start();
-  g_loop->loop();
-
-  string line;
-  while (getline(std::cin, line))
+  bool succeed = false;
+  if (conn_ && conn_->connected())
   {
-    client.publish("slave02", line);
+    conn_->send(message);
+    succeed = true;
   }
-
-}
-
-void fileTransfer()
-{}
-
-
-int main(int argc, char* argv[])
-{
-  if (argc != 2)
-  {
-    printf("Usage: ./client [server_ip]:[port] \n");
-    return 0;
-  }
-
-  string hostport = argv[1];
-  size_t colon = hostport.find(':');
-  if (colon == string::npos)
-  {
-    printf("Usage: ./client [server_ip]:[port] \n");
-    return 0;
-  }
-  string hostip = hostport.substr(0, colon);
-  uint16_t port = static_cast<uint16_t>(atoi(hostport.c_str()+colon+1));
-
-
-  printf("please input your hostname:  \n");
-  string name;
-  getline(std::cin,name);
-
-  printf("\033[2J");
-  printf("welcome %s \n",name.c_str());
-  printf("\n");
-  printf("please input number to choose funtions: \n");
-  printf("-------------------------------------- \n");
-  printf("1. message  \n");
-  printf("2. file transfer \n");
-  printf("0. quit \n");
-  printf("-------------------------------------- \n");
-
-  string cmd;
-  getline(std::cin,cmd);
-
-  EventLoop loop;
-  g_loop = &loop;
-
-  switch(cmd[0])
-  {
-    case '1': 
-      message(name,hostip,port);
-    break;
-
-    case '2': 
-      fileTransfer();
-    break;
-
-    case '0': 
-      return 0;
-    break;
-
-  }
-
-
-
+  return succeed;
 }

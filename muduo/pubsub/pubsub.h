@@ -29,6 +29,7 @@ class PubSubClient : muduo::noncopyable
   bool subscribe(const string& topic, const SubscribeCallback& cb);
   void unsubscribe(const string& topic);
   bool publish(const string& topic, const string& content);
+  void getUser();
 
  private:
   void onConnection(const muduo::net::TcpConnectionPtr& conn);
