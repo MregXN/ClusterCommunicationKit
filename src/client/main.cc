@@ -15,7 +15,6 @@
 using namespace muduo;
 using namespace muduo::net;
 
-EventLoop* g_loop = NULL;
 string hostname;
   
 void subscription(const string topic, const string content, Timestamp)
@@ -28,35 +27,32 @@ void connection(Client* client)
   if (client->connected())
   {
     printf("... connected successfully!\r\n");
-    client->subscribe(hostname, subscription);
-    // client->publish("slave01", "132456");
-    client->getUser();
-
+    client->subscribe("slave01", subscription);
+    client->publish("slave01", "132456");
   }
   else
   {
     printf("... connected unsuccessfully!\r\n");
-    g_loop->quit();
   }
 }
 
 void message (Client* client, string hostip,uint16_t port)
 {
-  //printf("\r\n0\r\n");
-  client->setConnectionCallback(connection);
-  //printf("\r\n1\r\n");
-  client->start();
-  //printf("\r\n2\r\n");
-  // string user;
-  // printf("input user\n");
-  // getline(std::cin, user);
+  printf("\r\n0\r\n");
+  
+  string user;
+  printf("input user\n");
+  getline(std::cin, user);
 
-  // string line;
-  // while (getline(std::cin, line))
-  // {
-  //   printf("%d",client->publish(user, line) );
-  // }
-  g_loop->loop();
+  client->subscribe(hostname, subscription);
+  // client->publish("slave01", "132456");
+  //client->getUser();
+
+  string line;
+  while (getline(std::cin, line))
+  {
+    printf("%d",client->publish(user, line) );
+  }
   //printf("\r\n3\r\n");
 
 }
@@ -91,11 +87,12 @@ int main(int argc, char* argv[])
   //getline(std::cin,hostname);
   hostname = "slave01";
 
-  EventLoop loop;
-  g_loop = &loop;
+  EventLoopThread loop;
   string name = ProcessInfo::username()+"@"+ProcessInfo::hostname();
   name += ":" + ProcessInfo::pidString();
-  Client client(&loop, InetAddress(hostip, port), name);
+  Client client(loop.startLoop(), InetAddress(hostip, port), name);
+  client.start();
+  client.setConnectionCallback(connection);
 
   printf("\033[2J");
   printf("welcome %s \n",hostname.c_str());

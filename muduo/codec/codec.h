@@ -5,23 +5,90 @@
 
 #include "muduo/base/Types.h"
 #include "muduo/net/Buffer.h"
+#include "muduo/base/Logging.h"
+#include "muduo/net/TcpConnection.h"
+#include "muduo/net/Endian.h"
+
 
 namespace pubsub
 {
-using muduo::string;
+  using muduo::string;
 
-enum ParseResult
-{
-  kError,
-  kSuccess,
-  kContinue,
-};
+  enum ParseResult
+  {
+    kError,
+    kSuccess,
+    kContinue,
+  };
 
-ParseResult parseMessage(muduo::net::Buffer* buf,
-                         string* cmd,
-                         string* topic,
-                         string* content);
-}  // namespace pubsub
+  ParseResult parseMessage(muduo::net::Buffer* buf,
+                          string* cmd,
+                          string* topic,
+                          string* content);
+
+
+  class LengthHeaderCodec : muduo::noncopyable
+  {
+    public:
+      typedef std::function<void (const muduo::net::TcpConnectionPtr&,
+                                    muduo::net::Buffer* ,
+                                    muduo::Timestamp)> StringMessageCallback;
+
+      explicit LengthHeaderCodec(const StringMessageCallback& cb)
+        : messageCallback_(cb)
+      {
+      }
+
+      void onMessage(const muduo::net::TcpConnectionPtr& conn,
+                    muduo::net::Buffer* buf,
+                    muduo::Timestamp receiveTime)
+      {
+        while (buf->readableBytes() >= kHeaderLen) // kHeaderLen == 4
+        {
+          // FIXME: use Buffer::peekInt32()
+          const void* data = buf->peek();
+          int32_t be32 = *static_cast<const int32_t*>(data); // SIGBUS
+          const int32_t len = muduo::net::sockets::networkToHost32(be32);
+          if (len > 65536 || len < 0)
+          {
+            LOG_ERROR << "Invalid length " << len;
+            conn->shutdown();  // FIXME: disable reading
+            break;
+          }
+          else if (buf->readableBytes() >= len + kHeaderLen)
+          {
+            buf->retrieve(kHeaderLen);
+            // muduo::string message(buf->peek(), len);
+            muduo::net::Buffer message;
+            message.append(buf->peek(), len);
+            messageCallback_(conn, &message, receiveTime);
+            buf->retrieve(len);
+          }
+          else
+          {
+            break;
+          }
+        }
+      }
+
+      // FIXME: TcpConnectionPtr
+      void send(muduo::net::TcpConnection* conn,
+                const muduo::StringPiece& message)
+      {
+        muduo::net::Buffer buf;
+        buf.append(message.data(), message.size());
+        int32_t len = static_cast<int32_t>(message.size());
+        int32_t be32 = muduo::net::sockets::hostToNetwork32(len);
+        buf.prepend(&be32, sizeof be32);
+        conn->send(&buf);
+      }
+
+    private:
+      StringMessageCallback messageCallback_;
+      const static size_t kHeaderLen = sizeof(int32_t);
+  };
+
+} // namespace pubsub
 
 #endif  // MUDUO_EXAMPLES_HUB_CODEC_H
 

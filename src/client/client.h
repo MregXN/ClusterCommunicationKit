@@ -2,8 +2,15 @@
 #define CLIENT_H
 
 #include "muduo/net/TcpClient.h"
+#include "../../muduo/codec/codec.h"
+#include "muduo/base/Mutex.h"
+#include "muduo/base/Logging.h"
 
 using muduo::string;
+using namespace pubsub;
+using namespace muduo;
+using namespace muduo::net;
+
 
 // FIXME: dtor is not thread safe
 class Client : muduo::noncopyable
@@ -37,9 +44,11 @@ class Client : muduo::noncopyable
   bool send(const string& message);
 
   muduo::net::TcpClient client_;
-  muduo::net::TcpConnectionPtr conn_;
+  MutexLock mutex_;
+  muduo::net::TcpConnectionPtr conn_ GUARDED_BY(mutex_);
   ConnectionCallback connectionCallback_;
   SubscribeCallback subscribeCallback_;
+  LengthHeaderCodec codec_;
 };
 
 #endif  // CLIENT_H

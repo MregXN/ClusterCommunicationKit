@@ -1,7 +1,4 @@
 #include "client.h"
-#include "../../muduo/codec/codec.h"
-
-#include "muduo/base/Logging.h"
 
 using namespace muduo;
 using namespace muduo::net;
@@ -10,13 +7,14 @@ using namespace pubsub;
 Client::Client(EventLoop* loop,
                            const InetAddress& hubAddr,
                            const string& name)
-  : client_(loop, hubAddr, name)
+  : client_(loop, hubAddr, name),
+    codec_(std::bind(&Client::onMessage, this, _1, _2, _3))
 {
   // FIXME: dtor is not thread safe
   client_.setConnectionCallback(
       std::bind(&Client::onConnection, this, _1));
   client_.setMessageCallback(
-      std::bind(&Client::onMessage, this, _1, _2, _3));
+        std::bind(&LengthHeaderCodec::onMessage, &codec_, _1, _2, _3));
 }
 
 void Client::start()
@@ -63,6 +61,7 @@ bool Client::publish(const string& topic, const string& content)
 
 void Client::onConnection(const TcpConnectionPtr& conn)
 {
+  MutexLockGuard lock(mutex_);
   if (conn->connected())
   {
     conn_ = conn;
@@ -109,10 +108,11 @@ void Client::onMessage(const TcpConnectionPtr& conn,
 
 bool Client::send(const string& message)
 {
+  MutexLockGuard lock(mutex_);
   bool succeed = false;
   if (conn_ && conn_->connected())
   {
-    conn_->send(message);
+    codec_.send(get_pointer(conn_), message);
     succeed = true;
   }
   return succeed;
