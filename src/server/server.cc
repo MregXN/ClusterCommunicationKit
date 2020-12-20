@@ -49,14 +49,14 @@ string Topic::makeMessage()
     return "pub " + topic_ + "\r\n" + content_ + "\r\n";
 }
 
-string Topic::getAllAudiencesName();
+string Topic::getAllAudiencesName()
 {
     string res;
     for (std::set<TcpConnectionPtr>::iterator it = audiences_.begin();
          it != audiences_.end();
          ++it)
     {
-        res += *(it)->name();
+        res += (*it)->name();
         res += "  ";
     }
 
@@ -133,7 +133,8 @@ void Server::onMessage(const TcpConnectionPtr &conn,
             }
             else
             {
-                conn->shutdown();
+                //conn->shutdown();
+                LOG_INFO << " you have received something :  " << cmd << topic << content ;
                 result = kError;
             }
         }

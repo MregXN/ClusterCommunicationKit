@@ -26,9 +26,8 @@ void connection(Client* client)
 {
   if (client->connected())
   {
-    printf("... connected successfully!\r\n");
-    client->subscribe("slave01", subscription);
-    client->publish("slave01", "132456");
+    //printf("... connected successfully!\r\n");
+    // client->publish("slave01", "132456");
   }
   else
   {
@@ -38,13 +37,12 @@ void connection(Client* client)
 
 void message (Client* client, string hostip,uint16_t port)
 {
-  printf("\r\n0\r\n");
-  
   string user;
-  printf("input user\n");
+  printf("input the user's name you what to chat with: ");
   getline(std::cin, user);
 
-  client->subscribe(hostname, subscription);
+
+  client->subscribe(user, subscription);
   // client->publish("slave01", "132456");
   //client->getUser();
 
@@ -97,6 +95,8 @@ int main(int argc, char* argv[])
   printf("\033[2J");
   printf("welcome %s \n",hostname.c_str());
   printf("\n");
+
+
   printf("please input number to choose funtions: \n");
   printf("-------------------------------------- \n");
   printf("1. message  \n");

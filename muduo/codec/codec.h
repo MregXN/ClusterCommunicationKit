@@ -77,9 +77,9 @@ namespace pubsub
       {
         muduo::net::Buffer buf;
         buf.append(message.data(), message.size());
-        int32_t len = static_cast<int32_t>(message.size());
-        int32_t be32 = muduo::net::sockets::hostToNetwork32(len);
-        buf.prepend(&be32, sizeof be32);
+        // int32_t len = static_cast<int32_t>(message.size());
+        // int32_t be32 = muduo::net::sockets::hostToNetwork32(len);
+        // buf.prepend(&be32, sizeof be32);
         conn->send(&buf);
       }
 
