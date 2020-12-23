@@ -17,11 +17,6 @@ using namespace muduo::net;
 
 string hostname;
   
-void subscription(const string topic, const string content, Timestamp)
-{
-  printf("%s: %s\n", topic.c_str(), content.c_str());
-}
-
 void connection(Client* client)
 {
   if (client->connected())
@@ -38,18 +33,18 @@ void connection(Client* client)
 void message (Client* client, string hostip,uint16_t port)
 {
   string user;
-  printf("input the user's name you what to chat with: ");
+  printf("input the user you want to chat with: ");
   getline(std::cin, user);
 
 
-  client->subscribe(user, subscription);
-  // client->publish("slave01", "132456");
-  //client->getUser();
+  //client->subscribe(user, subscription);
+  client->sendInfo();
+  client->getUser();
 
   string line;
   while (getline(std::cin, line))
   {
-    printf("%d",client->publish(user, line) );
+    client->publish(hostname,user, line);
   }
   //printf("\r\n3\r\n");
 
@@ -86,9 +81,9 @@ int main(int argc, char* argv[])
   hostname = "slave01";
 
   EventLoopThread loop;
-  string name = ProcessInfo::username()+"@"+ProcessInfo::hostname();
-  name += ":" + ProcessInfo::pidString();
-  Client client(loop.startLoop(), InetAddress(hostip, port), name);
+  // string name = ProcessInfo::username()+"@"+ProcessInfo::hostname();
+  // name += ":" + ProcessInfo::pidString();
+  Client client(loop.startLoop(), InetAddress(hostip, port), hostname);
   client.start();
   client.setConnectionCallback(connection);
 

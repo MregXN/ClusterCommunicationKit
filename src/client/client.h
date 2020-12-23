@@ -17,7 +17,9 @@ class Client : muduo::noncopyable
 {
  public:
   typedef std::function<void (Client*)> ConnectionCallback;
-  typedef std::function<void (const string& topic,
+  typedef std::function<void (const string& cmd,
+                              const string& from,
+                              const string& to,
                               const string& content,
                               muduo::Timestamp)> SubscribeCallback;
 
@@ -26,15 +28,20 @@ class Client : muduo::noncopyable
                const string& name);
   void start();
   void stop();
+
+  string name(){
+    //return name_;
+    return client_.name();
+  };
+
   bool connected() const;
 
   void setConnectionCallback(const ConnectionCallback& cb)
   { connectionCallback_ = cb; }
 
-  bool subscribe(const string& topic, const SubscribeCallback& cb);
-  void unsubscribe(const string& topic);
-  bool publish(const string& topic, const string& content);
+  bool publish(const string& from,const string& to, const string& content);
   void getUser();
+  void sendInfo();
 
  private:
   void onConnection(const muduo::net::TcpConnectionPtr& conn);
@@ -49,6 +56,7 @@ class Client : muduo::noncopyable
   ConnectionCallback connectionCallback_;
   SubscribeCallback subscribeCallback_;
   LengthHeaderCodec codec_;
+  //string name_;
 };
 
 #endif  // CLIENT_H

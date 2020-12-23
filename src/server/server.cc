@@ -49,19 +49,6 @@ string Topic::makeMessage()
     return "pub " + topic_ + "\r\n" + content_ + "\r\n";
 }
 
-string Topic::getAllAudiencesName()
-{
-    string res;
-    for (std::set<TcpConnectionPtr>::iterator it = audiences_.begin();
-         it != audiences_.end();
-         ++it)
-    {
-        res += (*it)->name();
-        res += "  ";
-    }
-
-    return res;
-}
 
 Server::Server(muduo::net::EventLoop *loop,
                const muduo::net::InetAddress &listenAddr)
@@ -82,19 +69,29 @@ void Server::start()
 
 void Server::onConnection(const TcpConnectionPtr &conn)
 {
-    if (conn->connected())
+    //std::map<string, TcpConnectionPtr>::iterator it = users_.find(conn->name());
+    //LOG_INFO << conn->name() << "connected";
+     if (conn->connected())
     {
         conn->setContext(ConnectionSubscription());
+        // if (it == users_.end())
+        // {
+        //     users_.insert(make_pair(conn->name(), conn));
+        // }
     }
     else
     {
-        const ConnectionSubscription &connSub = boost::any_cast<const ConnectionSubscription &>(conn->getContext());
-        // subtle: doUnsubscribe will erase *it, so increase before calling.
-        for (ConnectionSubscription::const_iterator it = connSub.begin();
-             it != connSub.end();)
-        {
-            doUnsubscribe(conn, *it++);
-        }
+        // const ConnectionSubscription &connSub = boost::any_cast<const ConnectionSubscription &>(conn->getContext());
+        // // subtle: doUnsubscribe will erase *it, so increase before calling.
+        // for (ConnectionSubscription::const_iterator it = connSub.begin();
+        //      it != connSub.end();)
+        // {
+        //     doUnsubscribe(conn, *it++);
+        // }
+        // if (it != users_.end())
+        // {
+        //     users_.erase(conn->name());
+        // }
     }
 }
 
@@ -106,41 +103,50 @@ void Server::onMessage(const TcpConnectionPtr &conn,
     while (result == kSuccess)
     {
         string cmd;
-        string topic;
+        string from;
+        string to;
         string content;
-        result = parseMessage(buf, &cmd, &topic, &content);
-        if (result == kSuccess)
+        result = parseMessage(buf, &cmd, &from,&to, &content);
+        if (result != kError)
         {
             if (cmd == "pub")
             {
                 LOG_INFO << conn->name() << " publics " << content;
-                doPublish(conn->name(), topic, content, receiveTime);
             }
-            else if (cmd == "sub")
+            else if ( cmd == "get")
             {
-                LOG_INFO << conn->name() << " subscribes " << topic;
-                doSubscribe(conn, topic);
-            }
-            else if (cmd == "unsub")
-            {
-                doUnsubscribe(conn, topic);
-            }
-            else if (cmd == "get")
-            {
-                LOG_INFO << conn->name() << " get user ";
-                string message = "get user\r\n test \r\n";
+                LOG_INFO << " want to get user";
+                string users;
+                for(auto it = users_.begin(); it != users_.end();it++) 
+                {
+                    //LOG_INFO << "user is " << it->first;
+                    users += it->first;
+                } 
+                LOG_INFO << "user is " << users;
+                string message = "get\r\n"+from+"\r\n"+from+"\r\n"+users+"\r\n";
                 conn->send(message);
+            }
+            else if (cmd == "info")
+            {
+                //LOG_INFO << " you received some info from";
+                std::map<string, TcpConnectionPtr>::iterator it = users_.find(from);
+                if (it == users_.end())
+                {
+                    users_.insert(make_pair(from, conn));
+                    LOG_INFO << "user" << from << " has added ";
+                }
             }
             else
             {
                 //conn->shutdown();
-                LOG_INFO << " you have received something :  " << cmd << topic << content ;
-                result = kError;
+                //LOG_INFO << " you have received something illegally";
+                //result = kError;
             }
         }
-        else if (result == kError)
+        else
         {
-            conn->shutdown();
+            LOG_INFO << " you have received something illegally";
+           //conn->shutdown();
         }
     }
 }
@@ -184,6 +190,18 @@ Topic &Server::getTopic(const string &topic)
     if (it == topics_.end())
     {
         it = topics_.insert(make_pair(topic, Topic(topic))).first;
+    }
+    return it->second;
+}
+
+
+TcpConnectionPtr Server::getUsers(const string& name)
+{
+    std::map<string, TcpConnectionPtr>::iterator it = users_.find(name);
+    if (it == users_.end())
+    {
+        //it = users.insert(make_pair(name, Topic(topic))).first;
+        return NULL;
     }
     return it->second;
 }

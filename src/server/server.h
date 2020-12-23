@@ -22,7 +22,6 @@ class Topic
   void add(const TcpConnectionPtr& conn);
   void remove(const TcpConnectionPtr& conn);
   void publish(const string& content, Timestamp time);
-  string getAllAudiencesName();
 
  private:
   string makeMessage();
@@ -47,9 +46,11 @@ private:
   void doPublish(const string& source,const string& topic,const string& content, Timestamp time);
 
   Topic& getTopic(const string& topic);
+  TcpConnectionPtr getUsers(const string& name);
   EventLoop* loop_;
   TcpServer server_;
   std::map<string, Topic> topics_;
+  std::map<string, TcpConnectionPtr> users_;
 };
 
 #endif  // SERVER_H

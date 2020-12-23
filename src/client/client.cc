@@ -4,17 +4,19 @@ using namespace muduo;
 using namespace muduo::net;
 using namespace pubsub;
 
-Client::Client(EventLoop* loop,
-                           const InetAddress& hubAddr,
-                           const string& name)
-  : client_(loop, hubAddr, name),
-    codec_(std::bind(&Client::onMessage, this, _1, _2, _3))
+Client::Client(EventLoop *loop,
+               const InetAddress &hubAddr,
+               const string &name)
+    : client_(loop, hubAddr, name),
+      codec_(std::bind(&Client::onMessage, this, _1, _2, _3))
+      //name_(name)
 {
   // FIXME: dtor is not thread safe
   client_.setConnectionCallback(
       std::bind(&Client::onConnection, this, _1));
   client_.setMessageCallback(
-        std::bind(&LengthHeaderCodec::onMessage, &codec_, _1, _2, _3));
+       //std::bind(&LengthHeaderCodec::onMessage, &codec_, _1, _2, _3));
+        std::bind(&Client::onMessage, this, _1, _2, _3));
 }
 
 void Client::start()
@@ -32,34 +34,26 @@ bool Client::connected() const
   return conn_ && conn_->connected();
 }
 
-bool Client::subscribe(const string& topic, const SubscribeCallback& cb)
+void Client::sendInfo()
 {
-  string message = "sub " + topic + "\r\n";
-  subscribeCallback_ = cb;
-  return send(message);
+  string message = "info\r\n" + name() + "\r\n \r\n \r\n";
+  send(message);
 }
 
 
 void Client::getUser()
 {
-  string message = "get \r\n";
+  string message = "get\r\n" + name() + "\r\n \r\n \r\n";
   send(message);
 }
 
-void Client::unsubscribe(const string& topic)
+bool Client::publish(const string &from, const string &to, const string &content)
 {
-  string message = "unsub " + topic + "\r\n";
-  send(message);
-}
-
-
-bool Client::publish(const string& topic, const string& content)
-{
-  string message = "pub " + topic + "\r\n" + content + "\r\n";
+  string message = "pub\r\n" + from + "\r\n" + to + "\r\n" + content + "\r\n";
   return send(message);
 }
 
-void Client::onConnection(const TcpConnectionPtr& conn)
+void Client::onConnection(const TcpConnectionPtr &conn)
 {
   MutexLockGuard lock(mutex_);
   if (conn->connected())
@@ -77,36 +71,43 @@ void Client::onConnection(const TcpConnectionPtr& conn)
   }
 }
 
-void Client::onMessage(const TcpConnectionPtr& conn,
-                             Buffer* buf,
-                             Timestamp receiveTime)
+void Client::onMessage(const TcpConnectionPtr &conn,
+                       Buffer *buf,
+                       Timestamp receiveTime)
 {
-  ParseResult result = kSuccess;
-  while (result == kSuccess)
+  while (buf->readableBytes() >= 4)
   {
-    string cmd;
-    string topic;
-    string content;
-    result = parseMessage(buf, &cmd, &topic, &content);
-    if (result == kSuccess)
+   // LOG_INFO << " you have recevied :" << buf-> toStringPiece();
+    ParseResult result = kSuccess;
+    while (result == kSuccess)
     {
-      if (cmd == "pub" && subscribeCallback_)
+      string cmd;
+      string from;
+      string to;
+      string content;
+      result = parseMessage(buf, &cmd, &from,&to, &content);
+      if (result == kSuccess)
       {
-        subscribeCallback_(topic, content, receiveTime);
+        LOG_INFO << cmd;
+        if (cmd == "get" )
+        {
+          LOG_INFO << cmd  << "!!!!";
+        }
+        // else
+        // {
+        //   LOG_INFO << " you have reveive something:   " << cmd << topic << content;
+        // }
+        buf->retrieveAll();
       }
-      else
+      else if (result == kError)
       {
-        LOG_INFO << " you have reveive something:   " << cmd << topic << content ;
+        //conn->shutdown();
       }
-    }
-    else if (result == kError)
-    {
-      conn->shutdown();
     }
   }
 }
 
-bool Client::send(const string& message)
+bool Client::send(const string &message)
 {
   MutexLockGuard lock(mutex_);
   bool succeed = false;
