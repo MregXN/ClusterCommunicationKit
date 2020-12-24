@@ -32,22 +32,23 @@ void connection(Client* client)
 
 void message (Client* client, string hostip,uint16_t port)
 {
+  client->sendInfo();
+  
+
+  client->getUser();
+
+  printf("users online: \r\n");
+  printf("%s",client->getUsersUpdate().c_str());
+
   string user;
   printf("input the user you want to chat with: ");
   getline(std::cin, user);
 
-
-  //client->subscribe(user, subscription);
-  client->sendInfo();
-  client->getUser();
-
   string line;
   while (getline(std::cin, line))
   {
-    client->publish(hostname,user, line);
+    client->sendMessage(hostname,user, line);
   }
-  //printf("\r\n3\r\n");
-
 }
 
 void fileTransfer()
@@ -77,12 +78,10 @@ int main(int argc, char* argv[])
 
 
   printf("please input your hostname:  \n");
-  //getline(std::cin,hostname);
-  hostname = "slave01";
+  getline(std::cin,hostname);
+  //hostname = "slave01";
 
   EventLoopThread loop;
-  // string name = ProcessInfo::username()+"@"+ProcessInfo::hostname();
-  // name += ":" + ProcessInfo::pidString();
   Client client(loop.startLoop(), InetAddress(hostip, port), hostname);
   client.start();
   client.setConnectionCallback(connection);
@@ -117,7 +116,5 @@ int main(int argc, char* argv[])
     break;
 
   }
-
-
 
 }

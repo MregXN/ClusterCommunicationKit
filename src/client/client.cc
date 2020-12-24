@@ -9,14 +9,14 @@ Client::Client(EventLoop *loop,
                const string &name)
     : client_(loop, hubAddr, name),
       codec_(std::bind(&Client::onMessage, this, _1, _2, _3))
-      //name_(name)
+//name_(name)
 {
   // FIXME: dtor is not thread safe
   client_.setConnectionCallback(
       std::bind(&Client::onConnection, this, _1));
   client_.setMessageCallback(
-       //std::bind(&LengthHeaderCodec::onMessage, &codec_, _1, _2, _3));
-        std::bind(&Client::onMessage, this, _1, _2, _3));
+      //std::bind(&LengthHeaderCodec::onMessage, &codec_, _1, _2, _3));
+      std::bind(&Client::onMessage, this, _1, _2, _3));
 }
 
 void Client::start()
@@ -40,16 +40,16 @@ void Client::sendInfo()
   send(message);
 }
 
-
 void Client::getUser()
 {
+  nowOnlineUpDate = false;
   string message = "get\r\n" + name() + "\r\n \r\n \r\n";
   send(message);
 }
 
-bool Client::publish(const string &from, const string &to, const string &content)
+bool Client::sendMessage(const string &from, const string &to, const string &content)
 {
-  string message = "pub\r\n" + from + "\r\n" + to + "\r\n" + content + "\r\n";
+  string message = "message\r\n" + from + "\r\n" + to + "\r\n" + content + "\r\n";
   return send(message);
 }
 
@@ -77,7 +77,6 @@ void Client::onMessage(const TcpConnectionPtr &conn,
 {
   while (buf->readableBytes() >= 4)
   {
-   // LOG_INFO << " you have recevied :" << buf-> toStringPiece();
     ParseResult result = kSuccess;
     while (result == kSuccess)
     {
@@ -85,18 +84,22 @@ void Client::onMessage(const TcpConnectionPtr &conn,
       string from;
       string to;
       string content;
-      result = parseMessage(buf, &cmd, &from,&to, &content);
+      result = parseMessage(buf, &cmd, &from, &to, &content);
       if (result == kSuccess)
       {
-        LOG_INFO << cmd;
-        if (cmd == "get" )
+        if (cmd == "get")
         {
-          LOG_INFO << cmd  << "!!!!";
+          nowOnline = content;
+          nowOnlineUpDate = true;
         }
-        // else
-        // {
-        //   LOG_INFO << " you have reveive something:   " << cmd << topic << content;
-        // }
+        else if (cmd == "message")
+        {
+          printf("%s :", from.c_str());
+          printf("%s \r\n", content.c_str());
+        }
+        else
+        {
+        }
         buf->retrieveAll();
       }
       else if (result == kError)

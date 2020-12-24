@@ -34,14 +34,23 @@ class Client : muduo::noncopyable
     return client_.name();
   };
 
+  string getUsersUpdate()
+  {
+    while(!nowOnlineUpDate);
+    return nowOnline;
+  };
+
   bool connected() const;
 
   void setConnectionCallback(const ConnectionCallback& cb)
   { connectionCallback_ = cb; }
 
-  bool publish(const string& from,const string& to, const string& content);
+  bool sendMessage(const string& from,const string& to, const string& content);
   void getUser();
   void sendInfo();
+
+
+
 
  private:
   void onConnection(const muduo::net::TcpConnectionPtr& conn);
@@ -56,7 +65,8 @@ class Client : muduo::noncopyable
   ConnectionCallback connectionCallback_;
   SubscribeCallback subscribeCallback_;
   LengthHeaderCodec codec_;
-  //string name_;
+  string nowOnline;
+  bool nowOnlineUpDate;
 };
 
 #endif  // CLIENT_H
