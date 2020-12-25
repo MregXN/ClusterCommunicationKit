@@ -16,8 +16,8 @@ using namespace muduo;
 using namespace muduo::net;
 
 string hostname;
-  
-void connection(Client* client)
+
+void connection(Client *client)
 {
   if (client->connected())
   {
@@ -30,32 +30,36 @@ void connection(Client* client)
   }
 }
 
-void message (Client* client, string hostip,uint16_t port)
+void message(Client *client, string hostip, uint16_t port)
 {
-  client->sendInfo();
-  
-
+  client->sendInfo(); // why just here?
   client->getUser();
 
   printf("users online: \r\n");
-  printf("%s",client->getUsersUpdate().c_str());
+  printf("%s", client->getUsersUpdate().c_str());
 
   string user;
   printf("input the user you want to chat with: ");
   getline(std::cin, user);
 
+  printf("start chatting with %s :\r\n", user.c_str());
+  printf("(use [:q] to quit)\r\n");
+  printf("-------------------------------------- \n");
+
   string line;
   while (getline(std::cin, line))
   {
-    client->sendMessage(hostname,user, line);
+    if(line == ":q") break;
+    client->sendMessage(hostname, user, line);
   }
+  printf("\033[2J");
 }
 
 void fileTransfer()
-{}
+{
+}
 
-
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
   // if (argc != 2)
   // {
@@ -76,9 +80,8 @@ int main(int argc, char* argv[])
   string hostip = "127.0.0.1";
   uint16_t port = 3000;
 
-
   printf("please input your hostname:  \n");
-  getline(std::cin,hostname);
+  getline(std::cin, hostname);
   //hostname = "slave01";
 
   EventLoopThread loop;
@@ -87,34 +90,34 @@ int main(int argc, char* argv[])
   client.setConnectionCallback(connection);
 
   printf("\033[2J");
-  printf("welcome %s \n",hostname.c_str());
+  printf("welcome %s \n", hostname.c_str());
   printf("\n");
 
-
-  printf("please input number to choose funtions: \n");
-  printf("-------------------------------------- \n");
-  printf("1. message  \n");
-  printf("2. file transfer \n");
-  printf("0. quit \n");
-  printf("-------------------------------------- \n");
-  
-  string cmd;
-  getline(std::cin,cmd);
-
-  switch(cmd[0])
+  while (1)
   {
-    case '1': 
-      message(&client,hostip,port);
-    break;
+    printf("please input number to choose funtions: \n");
+    printf("-------------------------------------- \n");
+    printf("1. message  \n");
+    printf("2. file transfer \n");
+    printf("0. quit \n");
+    printf("-------------------------------------- \n");
 
-    case '2': 
+    string cmd;
+    getline(std::cin, cmd);
+
+    switch (cmd[0])
+    {
+    case '1':
+      message(&client, hostip, port);
+      break;
+
+    case '2':
       fileTransfer();
-    break;
+      break;
 
-    case '0': 
+    case '0':
       return 0;
-    break;
-
+      break;
+    }
   }
-
 }
