@@ -30,10 +30,10 @@ void connection(Client *client)
   }
 }
 
-void message(Client *client, string hostip, uint16_t port)
+void message(Client *client)
 {
-  client->sendInfo(); // why just here?
-  client->getUser();
+  client->sendInfo("message","in"); // why just here?
+  client->getUser("message");
 
   printf("users online: \r\n");
   printf("%s", client->getUsersUpdate().c_str());
@@ -52,11 +52,26 @@ void message(Client *client, string hostip, uint16_t port)
     if(line == ":q") break;
     client->sendMessage(hostname, user, line);
   }
+  client->sendInfo("message","out");
   printf("\033[2J");
 }
 
-void fileTransfer()
+void fileTransfer(Client *client)
 {
+  client->sendInfo("file","in"); // why just here?
+  client->getUser("file");
+
+  printf("users online: \r\n");
+  printf("%s", client->getUsersUpdate().c_str());
+
+  string user;
+  printf("input the user you want to transfer file: ");
+  getline(std::cin, user);
+
+
+  client->sendInfo("file","out");
+  printf("\033[2J");
+
 }
 
 int main(int argc, char *argv[])
@@ -80,6 +95,7 @@ int main(int argc, char *argv[])
   string hostip = "127.0.0.1";
   uint16_t port = 3000;
 
+  printf("\033[2J");
   printf("please input your hostname:  \n");
   getline(std::cin, hostname);
   //hostname = "slave01";
@@ -108,11 +124,11 @@ int main(int argc, char *argv[])
     switch (cmd[0])
     {
     case '1':
-      message(&client, hostip, port);
+      message(&client);
       break;
 
     case '2':
-      fileTransfer();
+      fileTransfer(&client);
       break;
 
     case '0':

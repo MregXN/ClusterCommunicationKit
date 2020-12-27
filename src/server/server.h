@@ -27,7 +27,8 @@ private:
   TcpConnectionPtr getUsers(const string& name);
   EventLoop* loop_;
   TcpServer server_;
-  std::map<string, TcpConnectionPtr> users_;
+  std::map<string, TcpConnectionPtr> message_users_;
+  std::map<string, TcpConnectionPtr> file_users_;
 };
 
 #endif  // SERVER_H

@@ -34,16 +34,16 @@ bool Client::connected() const
   return conn_ && conn_->connected();
 }
 
-void Client::sendInfo()
+void Client::sendInfo(string func, string content)
 {
-  string message = "info\r\n" + name() + "\r\n \r\n \r\n";
+  string message = "info\r\n" + name() + "\r\n" + func + "\r\n" + content + "\r\n";
   send(message);
 }
 
-void Client::getUser()
+void Client::getUser(string func)
 {
   nowOnlineUpDate = false;
-  string message = "get\r\n" + name() + "\r\n \r\n \r\n";
+  string message = "get\r\n" + name() + "\r\n" + func + "\r\n \r\n";
   send(message);
 }
 
