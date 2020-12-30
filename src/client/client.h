@@ -52,6 +52,7 @@ public:
   bool sendMessage(const string &from, const string &to, const string &content);
   void getUser(string func);
   void sendInfo(string func, string content);
+  void sendFile(string& to, string& content);
 
 private:
   void onConnection(const muduo::net::TcpConnectionPtr &conn);

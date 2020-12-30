@@ -56,6 +56,31 @@ void message(Client *client)
   printf("\033[2J");
 }
 
+
+
+string readFile(const char* filename)
+{
+  string content;
+  FILE* fp = ::fopen(filename, "rb");
+  if (fp)
+  {
+    // inefficient!!!
+    const int kBufSize = 1024*1024;
+    char iobuf[kBufSize];
+    ::setbuffer(fp, iobuf, sizeof iobuf);
+
+    char buf[kBufSize];
+    size_t nread = 0;
+    while ( (nread = ::fread(buf, 1, sizeof buf, fp)) > 0)
+    {
+      content.append(buf, nread);
+    }
+    ::fclose(fp);
+  }
+  return content;
+}
+
+
 void fileTransfer(Client *client)
 {
   client->sendInfo("file","in"); // why just here?
@@ -68,9 +93,19 @@ void fileTransfer(Client *client)
   printf("input the user you want to transfer file: ");
   getline(std::cin, user);
 
+  string file_path;
+  printf("input the file path: ");
+  getline(std::cin, file_path);
+
+  string fileContent = readFile(file_path.c_str());
+
+  client->sendFile(user,fileContent);
+
+
+
 
   client->sendInfo("file","out");
-  printf("\033[2J");
+  //printf("\033[2J");
 
 }
 

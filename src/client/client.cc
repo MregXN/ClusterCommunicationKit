@@ -40,6 +40,12 @@ void Client::sendInfo(string func, string content)
   send(message);
 }
 
+void Client::sendFile(string& to, string& content)
+{
+  string message = "file\r\n" + name() + "\r\n" + to + "\r\n" + content + "\r\n";
+  send(message);
+}
+
 void Client::getUser(string func)
 {
   nowOnlineUpDate = false;
@@ -96,6 +102,14 @@ void Client::onMessage(const TcpConnectionPtr &conn,
         {
           printf("%s :", from.c_str());
           printf("%s \r\n", content.c_str());
+        }
+        else if( cmd == "file" )
+        {
+          printf("\r\nreceiving files\r\n");
+
+
+
+          
         }
         else
         {

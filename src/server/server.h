@@ -24,7 +24,6 @@ private:
   void onConnection(const TcpConnectionPtr& conn);
   void onMessage(const TcpConnectionPtr& conn,Buffer* buf,Timestamp receiveTime);
 
-  TcpConnectionPtr getUsers(const string& name);
   EventLoop* loop_;
   TcpServer server_;
   std::map<string, TcpConnectionPtr> message_users_;

@@ -110,7 +110,8 @@ void Server::onMessage(const TcpConnectionPtr &conn,
                 if (content == "in")
                 {
                     std::map<string, TcpConnectionPtr>::iterator it = ptr->find(from);
-                    if (it == ptr->end()) ptr->insert(make_pair(from, conn));
+                    if (it == ptr->end())
+                        ptr->insert(make_pair(from, conn));
                 }
                 else if (content == "out")
                 {
@@ -125,6 +126,17 @@ void Server::onMessage(const TcpConnectionPtr &conn,
                     it->second->send("message\r\n" + from + "\r\n" + to + "\r\n" + content + "\r\n");
                 }
             }
+            else if (cmd == "file")
+            {
+                LOG_INFO << "receive file from " <<  from << " to " << to;
+                std::map<string, TcpConnectionPtr>::iterator it = file_users_.find(to);
+                if (it != file_users_.end())
+                {
+                    it->second->send("file\r\n" + from + "\r\n" + to + "\r\n" + content + "\r\n");
+                }
+                else
+                    LOG_INFO << "no user " << to;
+            }
             else
             {
                 //conn->shutdown();
@@ -137,16 +149,7 @@ void Server::onMessage(const TcpConnectionPtr &conn,
             LOG_INFO << "received something illegally";
             //conn->shutdown();
         }
+        //buf->retrieveAll();
     }
-}
-
-TcpConnectionPtr Server::getUsers(const string &name)
-{
-    std::map<string, TcpConnectionPtr>::iterator it = message_users_.find(name);
-    if (it == message_users_.end())
-    {
-        //it = users.insert(make_pair(name, Topic(topic))).first;
-        return NULL;
-    }
-    return it->second;
+    buf->retrieveAll();
 }
