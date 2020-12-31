@@ -40,7 +40,7 @@ void Client::sendInfo(string func, string content)
   send(message);
 }
 
-void Client::sendFile(string& to, string& content)
+void Client::sendFile(string &to, string &content)
 {
   string message = "file\r\n" + name() + "\r\n" + to + "\r\n" + content + "\r\n";
   send(message);
@@ -103,13 +103,22 @@ void Client::onMessage(const TcpConnectionPtr &conn,
           printf("%s :", from.c_str());
           printf("%s \r\n", content.c_str());
         }
-        else if( cmd == "file" )
+        else if (cmd == "file")
         {
-          printf("\r\nreceiving files\r\n");
+          string fileName = string(content.begin(), content.begin() + content.find("\n"));
+          string fileContent = string(content.begin() + content.find("\n") + 1, content.end());
+          printf("\r\nreceiving files %s ... \r\n", fileName.c_str());
 
-
-
-          
+          FILE *fp = ::fopen(fileName.c_str(), "w");
+          if (fp)
+          {
+            fwrite(fileContent.c_str(), fileContent.size(), 1, fp);
+            ::fclose(fp);
+          }
+        }
+        else if (cmd == "info")
+        {
+          printf("%s \r\n", content.c_str());
         }
         else
         {

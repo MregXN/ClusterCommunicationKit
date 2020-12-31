@@ -32,7 +32,7 @@ void connection(Client *client)
 
 void message(Client *client)
 {
-  client->sendInfo("message","in"); // why just here?
+  client->sendInfo("message", "in"); // why just here?
   client->getUser("message");
 
   printf("users online: \r\n");
@@ -49,41 +49,44 @@ void message(Client *client)
   string line;
   while (getline(std::cin, line))
   {
-    if(line == ":q") break;
+    if (line == ":q")
+      break;
     client->sendMessage(hostname, user, line);
   }
-  client->sendInfo("message","out");
+  client->sendInfo("message", "out");
   printf("\033[2J");
 }
 
-
-
-string readFile(const char* filename)
+string readFile(const char *filename)
 {
   string content;
-  FILE* fp = ::fopen(filename, "rb");
+  FILE *fp = ::fopen(filename, "rb");
   if (fp)
   {
     // inefficient!!!
-    const int kBufSize = 1024*1024;
+    const int kBufSize = 1024 * 1024;
     char iobuf[kBufSize];
     ::setbuffer(fp, iobuf, sizeof iobuf);
 
     char buf[kBufSize];
     size_t nread = 0;
-    while ( (nread = ::fread(buf, 1, sizeof buf, fp)) > 0)
+    while ((nread = ::fread(buf, 1, sizeof buf, fp)) > 0)
     {
       content.append(buf, nread);
     }
     ::fclose(fp);
   }
+  else 
+  {
+    printf("\r\nNo local files \r\n ");
+    return string();
+  }
   return content;
 }
 
-
 void fileTransfer(Client *client)
 {
-  client->sendInfo("file","in"); // why just here?
+  client->sendInfo("file", "in"); // why just here?
   client->getUser("file");
 
   printf("users online: \r\n");
@@ -98,15 +101,13 @@ void fileTransfer(Client *client)
   getline(std::cin, file_path);
 
   string fileContent = readFile(file_path.c_str());
+  string fileName = string(file_path.begin() + file_path.rfind('/') + 1, file_path.end());
 
-  client->sendFile(user,fileContent);
+  string file = fileName + '\n' + fileContent;
+  client->sendFile(user, file);
 
-
-
-
-  client->sendInfo("file","out");
+  client->sendInfo("file", "out");
   //printf("\033[2J");
-
 }
 
 int main(int argc, char *argv[])
@@ -146,6 +147,7 @@ int main(int argc, char *argv[])
 
   while (1)
   {
+    sleep(2);
     printf("please input number to choose funtions: \n");
     printf("-------------------------------------- \n");
     printf("1. message  \n");

@@ -125,17 +125,19 @@ void Server::onMessage(const TcpConnectionPtr &conn,
                 {
                     it->second->send("message\r\n" + from + "\r\n" + to + "\r\n" + content + "\r\n");
                 }
+                else
+                    conn->send("info\r\n" + from + "\r\n" + to + "\r\n" + "no user " + to + "\r\n");
             }
             else if (cmd == "file")
             {
-                LOG_INFO << "receive file from " <<  from << " to " << to;
+                LOG_INFO << "receive file from " << from << " to " << to;
                 std::map<string, TcpConnectionPtr>::iterator it = file_users_.find(to);
                 if (it != file_users_.end())
                 {
                     it->second->send("file\r\n" + from + "\r\n" + to + "\r\n" + content + "\r\n");
                 }
                 else
-                    LOG_INFO << "no user " << to;
+                    conn->send("info\r\n" + from + "\r\n" + to + "\r\n" + "no user " + to + "\r\n");
             }
             else
             {
