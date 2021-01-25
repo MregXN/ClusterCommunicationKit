@@ -18,9 +18,9 @@ clean:
 	rm -f client server
 
 client: src/client/main.cc src/client/client.cc muduo/codec/codec.cc 
-	g++ $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
+	g++ $(CXXFLAGS) -o $@ $^ $(LDFLAGS) -std=c++11
 
 server: src/server/main.cc src/server/server.cc muduo/codec/codec.cc 
-	g++ $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
+	g++ $(CXXFLAGS) -o $@ $^ $(LDFLAGS) -std=c++11
 
 .PHONY: all clean
