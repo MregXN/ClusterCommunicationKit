@@ -21,8 +21,7 @@ void connection(Client *client)
 {
   if (client->connected())
   {
-    //printf("... connected successfully!\r\n");
-    // client->publish("slave01", "132456");
+
   }
   else
   {
@@ -30,13 +29,20 @@ void connection(Client *client)
   }
 }
 
-void message(Client *client)
+void getUsers(Client *client )
 {
-  client->sendInfo("message", "in"); // why just here?
-  client->getUser("message");
-
+  client->getUser();
+  printf("\033[2J");
   printf("users online: \r\n");
   printf("%s", client->getUsersUpdate().c_str());
+  printf("\r\n\r\n");
+}
+
+void message(Client *client)
+{
+ // client->sendInfo("message", "in"); // why just here?
+  // client->getUser("message");
+
 
   string user;
   printf("input the user you want to chat with: ");
@@ -53,8 +59,8 @@ void message(Client *client)
       break;
     client->sendMessage(hostname, user, line);
   }
-  client->sendInfo("message", "out");
-  printf("\033[2J");
+  // client->sendInfo("message", "out");
+  // printf("\033[2J");
 }
 
 string readFile(const char *filename)
@@ -76,7 +82,7 @@ string readFile(const char *filename)
     }
     ::fclose(fp);
   }
-  else 
+  else
   {
     printf("\r\nNo local files \r\n ");
     return string();
@@ -86,11 +92,11 @@ string readFile(const char *filename)
 
 void fileTransfer(Client *client)
 {
-  client->sendInfo("file", "in"); // why just here?
-  client->getUser("file");
+  //client->sendInfo("file", "in"); // why just here?
+  // client->getUser("file");
 
-  printf("users online: \r\n");
-  printf("%s", client->getUsersUpdate().c_str());
+  // printf("users online: \r\n");
+  // printf("%s", client->getUsersUpdate().c_str());
 
   string user;
   printf("input the user you want to transfer file: ");
@@ -106,7 +112,7 @@ void fileTransfer(Client *client)
   string file = fileName + '\n' + fileContent;
   client->sendFile(user, file);
 
-  client->sendInfo("file", "out");
+  //client->sendInfo("file", "out");
   //printf("\033[2J");
 }
 
@@ -134,7 +140,6 @@ int main(int argc, char *argv[])
   printf("\033[2J");
   printf("please input your hostname:  \n");
   getline(std::cin, hostname);
-  //hostname = "slave01";
 
   EventLoopThread loop;
   Client client(loop.startLoop(), InetAddress(hostip, port), hostname);
@@ -145,13 +150,16 @@ int main(int argc, char *argv[])
   printf("welcome %s \n", hostname.c_str());
   printf("\n");
 
+  sleep(1);
+  client.sendInfo("", "");
+
   while (1)
   {
-    sleep(2);
     printf("please input number to choose funtions: \n");
     printf("-------------------------------------- \n");
-    printf("1. message  \n");
-    printf("2. file transfer \n");
+    printf("1. online users  \n");
+    printf("2. message  \n");
+    printf("3. file transfer \n");
     printf("0. quit \n");
     printf("-------------------------------------- \n");
 
@@ -161,14 +169,20 @@ int main(int argc, char *argv[])
     switch (cmd[0])
     {
     case '1':
-      message(&client);
+      getUsers(&client);
       break;
 
     case '2':
+      message(&client);
+      break;
+
+    case '3':
       fileTransfer(&client);
       break;
 
     case '0':
+      printf("quitting... \n");
+      client.stop();
       return 0;
       break;
     }

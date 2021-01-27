@@ -50,7 +50,7 @@ public:
   }
 
   bool sendMessage(const string &from, const string &to, const string &content);
-  void getUser(string func);
+  void getUser();
   void sendInfo(string func, string content);
   void sendFile(string& to, string& content);
 

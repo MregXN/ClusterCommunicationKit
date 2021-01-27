@@ -46,10 +46,10 @@ void Client::sendFile(string &to, string &content)
   send(message);
 }
 
-void Client::getUser(string func)
+void Client::getUser()
 {
   nowOnlineUpDate = false;
-  string message = "get\r\n" + name() + "\r\n" + func + "\r\n \r\n";
+  string message = "get\r\n\r\n\r\n\r\n";
   send(message);
 }
 
@@ -100,14 +100,14 @@ void Client::onMessage(const TcpConnectionPtr &conn,
         }
         else if (cmd == "message")
         {
-          printf("%s :", from.c_str());
+          printf("\033[31m%s: \033[0m", from.c_str());
           printf("%s \r\n", content.c_str());
         }
         else if (cmd == "file")
         {
           string fileName = string(content.begin(), content.begin() + content.find("\n"));
           string fileContent = string(content.begin() + content.find("\n") + 1, content.end());
-          printf("\r\nreceiving files %s ... \r\n", fileName.c_str());
+          printf("\033[31m\r\nreceiving files %s from %s ... \r\n \033[0m", fileName.c_str(), from.c_str());
 
           FILE *fp = ::fopen(fileName.c_str(), "w");
           if (fp)
@@ -115,6 +115,8 @@ void Client::onMessage(const TcpConnectionPtr &conn,
             fwrite(fileContent.c_str(), fileContent.size(), 1, fp);
             ::fclose(fp);
           }
+          printf("\033[31m\r\nreceive complete \r\n \033[0m");
+          printf("\r\n");
         }
         else if (cmd == "info")
         {

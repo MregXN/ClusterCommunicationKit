@@ -44,6 +44,9 @@ void Server::onConnection(const TcpConnectionPtr &conn)
     }
     else
     {
+        string name  = name_maps_[conn->name()];
+        users_.erase(name);
+        name_maps_.erase(conn->name());
         // const ConnectionSubscription &connSub = boost::any_cast<const ConnectionSubscription &>(conn->getContext());
         // // subtle: doUnsubscribe will erase *it, so increase before calling.
         // for (ConnectionSubscription::const_iterator it = connSub.begin();
@@ -81,47 +84,38 @@ void Server::onMessage(const TcpConnectionPtr &conn,
             }
             else if (cmd == "get")
             {
-                std::map<string, TcpConnectionPtr> *ptr;
-                if (to == "message")
-                    ptr = &message_users_;
-                else if (to == "file")
-                    ptr = &file_users_;
+                std::map<string, TcpConnectionPtr> *ptr = &users_;
 
                 string users;
                 int count = 0;
                 for (auto it = ptr->begin(); it != ptr->end(); it++)
                 {
                     users += std::to_string(++count);
-                    users += (" " + it->first + "\n");
+                    users += (". " + it->first + "\n");
                 }
                 string message = "get\r\n" + from + "\r\n" + from + "\r\n" + users + "\r\n";
                 conn->send(message);
             }
             else if (cmd == "info")
             {
-
-                std::map<string, TcpConnectionPtr> *ptr;
-
-                if (to == "message")
-                    ptr = &message_users_;
-                else if (to == "file")
-                    ptr = &file_users_;
-
-                if (content == "in")
-                {
-                    std::map<string, TcpConnectionPtr>::iterator it = ptr->find(from);
-                    if (it == ptr->end())
-                        ptr->insert(make_pair(from, conn));
-                }
-                else if (content == "out")
-                {
-                    ptr->erase(from);
-                }
+                //std::map<string, TcpConnectionPtr> *ptr = &users_;
+                name_maps_[conn->name()] = from;
+                users_[from] = conn;
+                // if (content == "in")
+                // {
+                //     std::map<string, TcpConnectionPtr>::iterator it = ptr->find(from);
+                //     if (it == ptr->end())
+                //         ptr->insert(make_pair(from, conn));
+                // }
+                // else if (content == "out")
+                // {
+                //     ptr->erase(from);
+                // }
             }
             else if (cmd == "message")
             {
-                std::map<string, TcpConnectionPtr>::iterator it = message_users_.find(to);
-                if (it != message_users_.end())
+                std::map<string, TcpConnectionPtr>::iterator it = users_.find(to);
+                if (it != users_.end())
                 {
                     it->second->send("message\r\n" + from + "\r\n" + to + "\r\n" + content + "\r\n");
                 }
@@ -131,8 +125,8 @@ void Server::onMessage(const TcpConnectionPtr &conn,
             else if (cmd == "file")
             {
                 LOG_INFO << "receive file from " << from << " to " << to;
-                std::map<string, TcpConnectionPtr>::iterator it = file_users_.find(to);
-                if (it != file_users_.end())
+                std::map<string, TcpConnectionPtr>::iterator it = users_.find(to);
+                if (it != users_.end())
                 {
                     it->second->send("file\r\n" + from + "\r\n" + to + "\r\n" + content + "\r\n");
                 }

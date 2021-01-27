@@ -26,8 +26,8 @@ private:
 
   EventLoop* loop_;
   TcpServer server_;
-  std::map<string, TcpConnectionPtr> message_users_;
-  std::map<string, TcpConnectionPtr> file_users_;
+  std::map<string, TcpConnectionPtr> users_;
+  std::map<string, string> name_maps_;
 };
 
 #endif  // SERVER_H
