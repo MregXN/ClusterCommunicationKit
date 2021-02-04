@@ -32,32 +32,14 @@ void Server::start()
 
 void Server::onConnection(const TcpConnectionPtr &conn)
 {
-    //std::map<string, TcpConnectionPtr>::iterator it = message_users_.find(conn->name());
-    //LOG_INFO << conn->name() << "connected";
     if (conn->connected())
     {
-        // conn->setContext(ConnectionSubscription());
-        // if (it == message_users_.end())
-        // {
-        //     message_users_.insert(make_pair(conn->name(), conn));
-        // }
     }
     else
     {
-        string name  = name_maps_[conn->name()];
+        string name = name_maps_[conn->name()];
         users_.erase(name);
         name_maps_.erase(conn->name());
-        // const ConnectionSubscription &connSub = boost::any_cast<const ConnectionSubscription &>(conn->getContext());
-        // // subtle: doUnsubscribe will erase *it, so increase before calling.
-        // for (ConnectionSubscription::const_iterator it = connSub.begin();
-        //      it != connSub.end();)
-        // {
-        //     doUnsubscribe(conn, *it++);
-        // }
-        // if (it != message_users_.end())
-        // {
-        //     message_users_.erase(conn->name());
-        // }
     }
 }
 
@@ -65,87 +47,63 @@ void Server::onMessage(const TcpConnectionPtr &conn,
                        Buffer *buf,
                        Timestamp receiveTime)
 {
-    ParseResult result = kSuccess;
 
-    while (result == kSuccess)
+    string cmd;
+    string from;
+    string to;
+    string content;
+
+    ParseResult result = parseMessage(buf, &cmd, &from, &to, &content);
+    if (result != kError)
     {
-        string cmd;
-        string from;
-        string to;
-        string content;
-        result = parseMessage(buf, &cmd, &from, &to, &content);
-
-        if (result != kError)
+        if (cmd == "get")
         {
+            std::map<string, TcpConnectionPtr> *ptr = &users_;
 
-            if (cmd == "pub")
+            string users;
+            int count = 0;
+            for (auto it = ptr->begin(); it != ptr->end(); it++)
             {
-                LOG_INFO << conn->name() << " publics " << content;
+                users += std::to_string(++count);
+                users += (". " + it->first + "\n");
             }
-            else if (cmd == "get")
+            string message = "get\r\n" + from + "\r\n" + from + "\r\n" + users + "\r\n";
+            conn->send(message);
+        }
+        else if (cmd == "info")
+        {
+            name_maps_[conn->name()] = from;
+            users_[from] = conn;
+        }
+        else if (cmd == "message")
+        {
+            std::map<string, TcpConnectionPtr>::iterator it = users_.find(to);
+            if (it != users_.end())
             {
-                std::map<string, TcpConnectionPtr> *ptr = &users_;
-
-                string users;
-                int count = 0;
-                for (auto it = ptr->begin(); it != ptr->end(); it++)
-                {
-                    users += std::to_string(++count);
-                    users += (". " + it->first + "\n");
-                }
-                string message = "get\r\n" + from + "\r\n" + from + "\r\n" + users + "\r\n";
-                conn->send(message);
-            }
-            else if (cmd == "info")
-            {
-                //std::map<string, TcpConnectionPtr> *ptr = &users_;
-                name_maps_[conn->name()] = from;
-                users_[from] = conn;
-                // if (content == "in")
-                // {
-                //     std::map<string, TcpConnectionPtr>::iterator it = ptr->find(from);
-                //     if (it == ptr->end())
-                //         ptr->insert(make_pair(from, conn));
-                // }
-                // else if (content == "out")
-                // {
-                //     ptr->erase(from);
-                // }
-            }
-            else if (cmd == "message")
-            {
-                std::map<string, TcpConnectionPtr>::iterator it = users_.find(to);
-                if (it != users_.end())
-                {
-                    it->second->send("message\r\n" + from + "\r\n" + to + "\r\n" + content + "\r\n");
-                }
-                else
-                    conn->send("info\r\n" + from + "\r\n" + to + "\r\n" + "no user " + to + "\r\n");
-            }
-            else if (cmd == "file")
-            {
-                LOG_INFO << "receive file from " << from << " to " << to;
-                std::map<string, TcpConnectionPtr>::iterator it = users_.find(to);
-                if (it != users_.end())
-                {
-                    it->second->send("file\r\n" + from + "\r\n" + to + "\r\n" + content + "\r\n");
-                }
-                else
-                    conn->send("info\r\n" + from + "\r\n" + to + "\r\n" + "no user " + to + "\r\n");
+                it->second->send("message\r\n" + from + "\r\n" + to + "\r\n" + content + "\r\n");
             }
             else
+                conn->send("info\r\n" + from + "\r\n" + to + "\r\n" + "no user " + to + "\r\n");
+        }
+        else if (cmd == "file")
+        {
+            LOG_INFO << "receive file from " << from << " to " << to;
+            std::map<string, TcpConnectionPtr>::iterator it = users_.find(to);
+            if (it != users_.end())
             {
-                //conn->shutdown();
-                //LOG_INFO << " you have received something illegally";
-                //result = kError;
+                it->second->send("file\r\n" + from + "\r\n" + to + "\r\n" + content + "\r\n");
             }
+            else
+                conn->send("info\r\n" + from + "\r\n" + to + "\r\n" + "no user " + to + "\r\n");
         }
         else
         {
-            LOG_INFO << "received something illegally";
-            //conn->shutdown();
+            conn->send("info\r\n" + from + "\r\n" + to + "\r\n" + "no cmd " + cmd + "\r\n");
         }
-        //buf->retrieveAll();
+    }
+    else
+    {
+        LOG_WARN << "received something illegally";
     }
     buf->retrieveAll();
 }

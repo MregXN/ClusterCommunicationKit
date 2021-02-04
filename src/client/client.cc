@@ -15,7 +15,6 @@ Client::Client(EventLoop *loop,
   client_.setConnectionCallback(
       std::bind(&Client::onConnection, this, _1));
   client_.setMessageCallback(
-      //std::bind(&LengthHeaderCodec::onMessage, &codec_, _1, _2, _3));
       std::bind(&Client::onMessage, this, _1, _2, _3));
 }
 

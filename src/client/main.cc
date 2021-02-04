@@ -25,7 +25,7 @@ void connection(Client *client)
   }
   else
   {
-    printf("... connected unsuccessfully!\r\n");
+    printf("... disconnected!\r\n");
   }
 }
 
@@ -40,10 +40,6 @@ void getUsers(Client *client )
 
 void message(Client *client)
 {
- // client->sendInfo("message", "in"); // why just here?
-  // client->getUser("message");
-
-
   string user;
   printf("input the user you want to chat with: ");
   getline(std::cin, user);
@@ -59,8 +55,6 @@ void message(Client *client)
       break;
     client->sendMessage(hostname, user, line);
   }
-  // client->sendInfo("message", "out");
-  // printf("\033[2J");
 }
 
 string readFile(const char *filename)
@@ -92,12 +86,6 @@ string readFile(const char *filename)
 
 void fileTransfer(Client *client)
 {
-  //client->sendInfo("file", "in"); // why just here?
-  // client->getUser("file");
-
-  // printf("users online: \r\n");
-  // printf("%s", client->getUsersUpdate().c_str());
-
   string user;
   printf("input the user you want to transfer file: ");
   getline(std::cin, user);
@@ -111,31 +99,31 @@ void fileTransfer(Client *client)
 
   string file = fileName + '\n' + fileContent;
   client->sendFile(user, file);
-
-  //client->sendInfo("file", "out");
-  //printf("\033[2J");
+  printf("transfer file successfully !");
+  printf("\r\n");
+  printf("\r\n");
 }
 
 int main(int argc, char *argv[])
 {
-  // if (argc != 2)
-  // {
-  //   printf("Usage: ./client [server_ip]:[port] \n");
-  //   return 0;
-  // }
+  if (argc != 2)
+  {
+    printf("Usage: ./client [server_ip]:[port] \n");
+    return 0;
+  }
 
-  // string hostport = argv[1];
-  // size_t colon = hostport.find(':');
-  // if (colon == string::npos)
-  // {
-  //   printf("Usage: ./client [server_ip]:[port] \n");
-  //   return 0;
-  // }
-  // string hostip = hostport.substr(0, colon);
-  // uint16_t port = static_cast<uint16_t>(atoi(hostport.c_str()+colon+1));
+  string hostport = argv[1];
+  size_t colon = hostport.find(':');
+  if (colon == string::npos)
+  {
+    printf("Usage: ./client [server_ip]:[port] \n");
+    return 0;
+  }
+  string hostip = hostport.substr(0, colon);
+  uint16_t port = static_cast<uint16_t>(atoi(hostport.c_str()+colon+1));
 
-  string hostip = "127.0.0.1";
-  uint16_t port = 3000;
+  // string hostip = "127.0.0.1";
+  // uint16_t port = 3000;
 
   printf("\033[2J");
   printf("please input your hostname:  \n");
