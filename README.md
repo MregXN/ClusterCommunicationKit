@@ -67,3 +67,25 @@ $ ./client [server_ip]:[port]   # ./client 127.0.0.1:3000
 ##### 文件发送
 
 ![ui](.\img\file.png)
+
+
+
+## 服务端Docker容器制作
+
+### 构造
+
+```powershell
+$ docker pull gcc
+$ mkdir tmp
+$ sudo cp -r Makefile  src/ muduo/ test/
+$ docker build -t cckserverimg . 
+```
+
+### 运行
+
+
+
+```powershell
+$ docker run -d -p 3000:3000 cckserverimg 
+```
+
