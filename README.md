@@ -1,10 +1,21 @@
 # ClusterCommunicationKit
+学习Muduo时做的简单的集群通讯工具，支持查看在线用户、消息发送、文件传输
+##### 主界面
 
-学习Muduo时做的简单的集群通讯工具
+![ui.png](https://github.com/MregXN/ClusterCommunicationKit/blob/master/img/ui.png?raw=true)
 
-- 查看在线用户
-- 消息发送
-- 文件发送
+##### 查看在线用户
+
+![useronline.png](https://github.com/MregXN/ClusterCommunicationKit/blob/master/img/useronline.png?raw=true)
+
+##### 消息发送
+
+![message.png](https://github.com/MregXN/ClusterCommunicationKit/blob/master/img/message.png?raw=true)
+
+##### 文件发送
+
+![file.png](https://github.com/MregXN/ClusterCommunicationKit/blob/master/img/file.png?raw=true)
+
 
 ## 安装
 
@@ -47,24 +58,6 @@ $ ./server
 ```powershell
 $ ./client [server_ip]:[port]   # ./client 127.0.0.1:3000
 ```
-
-##### 主界面
-
-![ui.png](https://github.com/MregXN/ClusterCommunicationKit/blob/master/img/ui.png?raw=true)
-
-##### 查看在线用户
-
-![useronline.png](https://github.com/MregXN/ClusterCommunicationKit/blob/master/img/useronline.png?raw=true)
-
-##### 消息发送
-
-![message.png](https://github.com/MregXN/ClusterCommunicationKit/blob/master/img/message.png?raw=true)
-
-##### 文件发送
-
-![file.png](https://github.com/MregXN/ClusterCommunicationKit/blob/master/img/file.png?raw=true)
-
-
 
 ## 服务端Docker容器制作
 
