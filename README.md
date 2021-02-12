@@ -1,7 +1,3 @@
-![ui.png](https://github.com/MregXN/ClusterCommunicationKit/blob/master/img/ui.png?raw=true)
-
-
-
 # ClusterCommunicationKit
 
 学习Muduo时做的简单的集群通讯工具
