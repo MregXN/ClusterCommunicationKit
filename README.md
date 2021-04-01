@@ -3,7 +3,7 @@
 
 ![ui.png](https://github.com/MregXN/ClusterCommunicationKit/blob/master/img/web.png?raw=true)
 
-### 客户端界面
+### 客户端
 
 ![ui.png](https://github.com/MregXN/ClusterCommunicationKit/blob/master/img/ui.png?raw=true)
 
