@@ -1,11 +1,11 @@
 # ClusterCommunicationKit
 ### web
 
-![ui.png](https://github.com/MregXN/ClusterCommunicationKit/blob/master/img/web.png?raw=true)
+![ui.png](https://github.com/MregXN/ClusterCommunicationKit/blob/master/imgs/web.png?raw=true)
 
 ### 客户端
 
-![ui.png](https://github.com/MregXN/ClusterCommunicationKit/blob/master/img/ui.png?raw=true)
+![ui.png](https://github.com/MregXN/ClusterCommunicationKit/blob/master/imgs/ui.png?raw=true)
 
 ## 简介
 
