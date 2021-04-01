@@ -4,7 +4,7 @@
 #include "muduo/base/Mutex.h"
 #include "muduo/net/EventLoopThread.h"
 #include "muduo/net/TcpClient.h"
-#include "muduo/net/EventLoop.h"
+//#include "muduo/net/EventLoop.h"
 #include "muduo/base/ProcessInfo.h"
 
 #include <iostream>
@@ -31,6 +31,7 @@ void connection(Client *client)
 
 void getUsers(Client *client )
 {
+ // client->sendInfo("online", "");
   client->getUser();
   printf("\033[2J");
   printf("users online: \r\n");
@@ -87,7 +88,7 @@ string readFile(const char *filename)
 void fileTransfer(Client *client)
 {
   string user;
-  printf("input the user you want to transfer file: ");
+  printf("input the user you want to transfer file with: ");
   getline(std::cin, user);
 
   string file_path;
@@ -138,8 +139,8 @@ int main(int argc, char *argv[])
   printf("welcome %s \n", hostname.c_str());
   printf("\n");
 
-  sleep(1);
-  client.sendInfo("", "");
+  sleep(2);
+  client.sendInfo("online", "");
 
   while (1)
   {

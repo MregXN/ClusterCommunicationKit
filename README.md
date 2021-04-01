@@ -1,20 +1,17 @@
 # ClusterCommunicationKit
-学习Muduo时做的简单的集群通讯工具，支持查看在线用户、消息发送、文件传输
-##### 主界面
+阅读《Linux多线程服务端编程》后所做。使用基于TCP协议的Muduo框架，完成客户端之间的消息收发、文件传输、查看在线用户功能。服务端支持HTTP报文解析，使用web实现对各客户端的状态监控，支持Docker容器的部署。
+
+
+
+**web**
+
+![ui.png](https://github.com/MregXN/ClusterCommunicationKit/blob/master/img/web.png?raw=true)
+
+##### 客户端界面
 
 ![ui.png](https://github.com/MregXN/ClusterCommunicationKit/blob/master/img/ui.png?raw=true)
 
-##### 查看在线用户
 
-![useronline.png](https://github.com/MregXN/ClusterCommunicationKit/blob/master/img/useronline.png?raw=true)
-
-##### 消息发送
-
-![message.png](https://github.com/MregXN/ClusterCommunicationKit/blob/master/img/message.png?raw=true)
-
-##### 文件发送
-
-![file.png](https://github.com/MregXN/ClusterCommunicationKit/blob/master/img/file.png?raw=true)
 
 
 ## 安装
@@ -43,14 +40,14 @@ $ sudo cp -r  ~/build/release-install-cpp11/* muduo
 $ make
 ~~~
 
+
+
 ## 使用
 
 #### 服务端
 
-端口号默认3000
-
 ```powershell
-$ ./server
+$ ./server # 端口号默认3000
 ```
 
 ####  客户端
@@ -59,14 +56,22 @@ $ ./server
 $ ./client [server_ip]:[port]   # ./client 127.0.0.1:3000
 ```
 
-## 服务端Docker容器制作
+#### 浏览器
+
+```powershell
+直接访问 [server_ip]:[port]  #127.0.0.1:3000
+```
+
+
+
+## 服务端Docker部署
 
 #### 构造
 
 ```powershell
 $ docker pull gcc
 $ mkdir tmp
-$ sudo cp -r Makefile  src/ muduo/ test/
+$ sudo cp -r Makefile  src/ muduo/ tmp/
 $ docker build -t cckserverimg . 
 ```
 

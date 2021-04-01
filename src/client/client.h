@@ -5,6 +5,8 @@
 #include "../../muduo/codec/codec.h"
 #include "muduo/base/Mutex.h"
 #include "muduo/base/Logging.h"
+#include "muduo/net/EventLoop.h"
+#include "getinfo.h"
 
 using muduo::string;
 using namespace pubsub;
@@ -23,9 +25,20 @@ public:
                              muduo::Timestamp)>
       SubscribeCallback;
 
+  typedef struct SYSTEMINFO //定义一个mem occupy的结构体
+  {
+    MEM_OCCUPY mem_stat;
+    CPU_OCCUPY cpu_stat;
+    double cpu_usage = 0;
+    double mem_usage = 0;
+    unsigned long online_time = 0;
+  } INFO;
+
   Client(muduo::net::EventLoop *loop,
          const muduo::net::InetAddress &hubAddr,
          const string &name);
+
+
   void start();
   void stop();
 
@@ -52,7 +65,8 @@ public:
   bool sendMessage(const string &from, const string &to, const string &content);
   void getUser();
   void sendInfo(string func, string content);
-  void sendFile(string& to, string& content);
+  void sendFile(string &to, string &content);
+  void tiktok();
 
 private:
   void onConnection(const muduo::net::TcpConnectionPtr &conn);
@@ -69,6 +83,7 @@ private:
   LengthHeaderCodec codec_;
   string nowOnline;
   bool nowOnlineUpDate;
+  INFO client_info;
 };
 
 #endif // CLIENT_H
