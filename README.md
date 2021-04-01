@@ -1,13 +1,11 @@
 # ClusterCommunicationKit
-阅读《Linux多线程服务端编程》后所做。使用基于TCP协议的Muduo框架，完成客户端之间的消息收发、文件传输、查看在线用户功能。服务端支持HTTP报文解析，使用web实现对各客户端的状态监控，支持Docker容器的部署。
+使用Muduo完成客户端之间的消息收发、文件传输、查看在线用户功能。服务端支持HTTP报文解析，使用web实现对各客户端的状态监控，支持Docker容器的部署。阅读《Linux多线程服务端编程》后所做。
 
-
-
-**web**
+### web
 
 ![ui.png](https://github.com/MregXN/ClusterCommunicationKit/blob/master/img/web.png?raw=true)
 
-##### 客户端界面
+### 客户端界面
 
 ![ui.png](https://github.com/MregXN/ClusterCommunicationKit/blob/master/img/ui.png?raw=true)
 
